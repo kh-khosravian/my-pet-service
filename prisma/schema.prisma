@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id          String        @id @default(cuid())
+  displayName String
+  email       String?
+  phone       String?
+  gender      Gender        @default(UNKNOWN)
+  address     String?
+  zipCode     String?
+  city        String?
+  country     String?
+  Pet         Pet[]
+  Appointment Appointment[]
+
+  @@map("clients")
+}
+
+model Pet {
+  id               String        @id @default(cuid())
+  name             String
+  species          PetSpecies
+  breed            String?
+  age              Int
+  gender           Gender        @default(UNKNOWN)
+  weight           Float?
+  Size             PetSize
+  description      String?
+  CareInstructions String?
+  neutered         Boolean       @default(false)
+  vaccinated       Boolean       @default(false)
+  microchipped     Boolean       @default(false)
+  clientId         String
+  client           Client        @relation(fields: [clientId], references: [id])
+  appointments     Appointment[]
+
+  @@map("pets")
+}
+
+model Service {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int? // Duration in minutes
+  species     PetSpecies[]
+  type        ServiceType
+  Appointment Appointment[]
+
+  @@map("services")
+}
+
+model Appointment {
+  id        String   @id @default(cuid())
+  date      DateTime
+  clientId  String
+  petId     String
+  serviceId String
+  client    Client   @relation(fields: [clientId], references: [id])
+  pet       Pet      @relation(fields: [petId], references: [id])
+  service   Service  @relation(fields: [serviceId], references: [id])
+
+  @@map("appointments")
+}
+
+enum PetSpecies {
+  OTHER
+  DOG
+  CAT
+  BIRD
+  FISH
+}
+
+enum Gender {
+  UNKNOWN
+  MALE
+  FEMALE
+}
+
+enum ServiceType {
+  FLAT_RATE
+  HOURLY
+}
+
+enum PetSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+}
